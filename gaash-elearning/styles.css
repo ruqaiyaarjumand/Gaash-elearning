@@ -1,0 +1,179 @@
+/* =====================================================================
+   GAASH — DESIGN SYSTEM
+   Two fonts (Bricolage Grotesque + Inter), two hues (green + yellow)
+   with tints/shades, and a strict 4px spacing grid.
+   Every value below is a token. Nothing off-system.
+   ===================================================================== */
+
+:root {
+  /* ---- COLOUR: GREEN (structure, text, "correct") ---- */
+  --green-900: #123324;   /* ink / headings            */
+  --green-700: #1E4D38;   /* primary buttons, brand    */
+  --green-500: #2E6B4E;   /* soft text, success        */
+  --green-300: #7FA98F;   /* muted, disabled           */
+  --green-100: #E4EDE4;   /* borders, hairlines        */
+  --green-50:  #F2F6F1;   /* page background           */
+
+  /* ---- COLOUR: YELLOW (reward, progress, attention) ---- */
+  --yellow-700: #C9992F;  /* yellow text on light (a11y-safe) */
+  --yellow-500: #EBB84A;  /* points, badges, accents          */
+  --yellow-300: #F3D488;  /* highlights                       */
+  --yellow-100: #F7EBC7;  /* soft fills                       */
+  --yellow-50:  #FBF6E7;  /* faint panels                     */
+
+  /* ---- SEMANTIC (everything maps back to the two hues) ---- */
+  --bg:       var(--green-50);
+  --surface:  #FFFFFF;
+  --ink:      var(--green-900);
+  --ink-soft: var(--green-500);
+  --line:     var(--green-100);
+  --focus:    var(--yellow-700);   /* visible focus ring */
+
+  /* ---- SPACING: strict 4px grid ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- RADIUS (same 4x family) ---- */
+  --r-sm: 8px;
+  --r-md: 16px;
+  --r-lg: 24px;
+
+  /* ---- TYPE ---- */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --fs-1: 40px;   /* hero titles   */
+  --fs-2: 28px;   /* screen titles */
+  --fs-3: 20px;   /* subheads      */
+  --fs-4: 16px;   /* body          */
+  --fs-5: 14px;   /* labels        */
+  --fs-6: 12px;   /* captions      */
+
+  /* ---- ELEVATION + MOTION ---- */
+  --shadow-sm: 0 2px 8px rgba(18, 51, 36, 0.08);
+  --shadow-md: 0 8px 24px rgba(18, 51, 36, 0.12);
+  --transition: 180ms ease;
+}
+
+/* ---- RESET (minimal) ---- */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+
+/* ---- BASE ---- */
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-4);
+  line-height: 1.5;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+}
+p { margin: 0; }
+button { font-family: inherit; cursor: pointer; }
+
+/* ---- ACCESSIBILITY ---- */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--r-sm);
+}
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -48px;
+  background: var(--green-700);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--r-sm);
+  transition: top var(--transition);
+  z-index: 10;
+}
+.skip-link:focus { top: var(--space-4); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---- APP BAR ---- */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: var(--space-3); }
+.brand__mark {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--green-700);
+  display: grid; place-items: center;
+}
+.brand__name { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-3); }
+
+.stats { display: flex; gap: var(--space-3); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--fs-5);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.chip__icon { flex: none; }
+
+/* ---- SCREENS ---- */
+main { max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+.screen { display: none; }
+.screen.is-active { display: block; animation: fadeUp 320ms ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- BUTTONS ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  border: none;
+  border-radius: var(--r-md);
+  font-size: var(--fs-4);
+  font-weight: 700;
+  transition: transform var(--transition), background var(--transition);
+}
+.btn-primary { background: var(--green-700); color: #fff; }
+.btn-primary:hover { background: var(--green-900); }
+.btn:active { transform: translateY(1px); }
+.btn[disabled] { background: var(--green-100); color: var(--green-300); cursor: not-allowed; }
+
+/* ---- temporary placeholder (removed as we build each screen) ---- */
+.placeholder {
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: var(--fs-3);
+  border: 2px dashed var(--green-100);
+  border-radius: var(--r-lg);
+}

@@ -526,3 +526,25 @@ main { max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-6)
       last dot in a cluster is always clickable. */
 .hotspot { z-index: 2; }
 .hotspot.is-found { z-index: 1; }
+
+/* =====================================================================
+   TOP BAR — clickable brand + restart button
+   ===================================================================== */
+.brand { background: none; border: none; padding: 0; cursor: pointer; font: inherit; }
+.brand:hover .brand__name { color: var(--green-700); }
+
+.app-bar__right { display: flex; align-items: center; gap: var(--space-3); }
+
+.iconbtn {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line); background: var(--surface);
+  border-radius: 999px; font-size: var(--fs-5); font-weight: 600;
+  color: var(--green-700); transition: border-color var(--transition);
+}
+.iconbtn:hover { border-color: var(--green-300); }
+
+@media (max-width: 520px) {
+  .iconbtn { padding: var(--space-2); }
+  .iconbtn svg { margin: 0; }
+}

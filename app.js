@@ -164,9 +164,23 @@ function init() {
 
 /* Navigation via data-goto attributes, e.g. <button data-goto="lesson"> */
 document.addEventListener("click", (e) => {
+  if (e.target.closest("#restart-btn")) return restartLesson();
   const trigger = e.target.closest("[data-goto]");
   if (trigger) showScreen(trigger.dataset.goto);
 });
+
+/* Reset the current lesson to a clean state (handy for repeat demos) */
+function restartLesson() {
+  if (!confirm("Restart this lesson? Your points and progress will be cleared.")) return;
+  state.foundParts = []; state.points = 0; state.streak = 0;
+  state.quizIndex = 0; state.quizScore = 0; state.answers = [];
+  state.screen = "welcome";
+  quizStreak = 0;
+  save();
+  buildWelcome(lesson); buildLesson(lesson); buildQuiz(lesson); buildReward();
+  renderStats();
+  showScreen("welcome");
+}
 
 document.addEventListener("DOMContentLoaded", init);
 

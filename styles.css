@@ -513,3 +513,16 @@ main { max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-6)
   .summary__mastery { grid-template-columns: 1fr; }
   .summary__head { flex-direction: column; text-align: center; }
 }
+
+/* =====================================================================
+   FIXES
+   ===================================================================== */
+/* 1) A class-level `display` was overriding the HTML `hidden` attribute
+      (equal specificity, later rule won). Make hidden explicitly hide. */
+.partcard__detail[hidden],
+.q-feedback[hidden] { display: none; }
+
+/* 2) Overlapping hotspots: keep UNFOUND dots above FOUND ones so the
+      last dot in a cluster is always clickable. */
+.hotspot { z-index: 2; }
+.hotspot.is-found { z-index: 1; }

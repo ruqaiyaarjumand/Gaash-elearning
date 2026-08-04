@@ -52,15 +52,15 @@ window.LESSONS.cow = {
       tip: "Note switch condition and any swelling or deviation at the tail-head.",
       fact: "Vigorous tail swishing can also be a behavioural sign of discomfort or irritation." },
 
-    { id: "horn", name: "Horn", category: "Head & Neck", difficulty: "easy", points: 5, x: 19, y: 32,
+    { id: "horn", name: "Horn", category: "Head & Neck", difficulty: "easy", points: 5, x: 15, y: 31,
       function: "Bony growths on the poll, used for defence and establishing social rank.",
       clinical: "Many dairy herds disbud calves early to prevent injuries to handlers and other cows." },
 
-    { id: "ear", name: "Ear", category: "Head & Neck", difficulty: "easy", points: 5, x: 28, y: 38,
+    { id: "ear", name: "Ear", category: "Head & Neck", difficulty: "easy", points: 5, x: 31, y: 41,
       function: "Highly mobile — cattle rotate their ears to locate sound and to signal mood.",
       clinical: "Drooping ears can be an early, easily-missed sign of illness; also the standard site for ID ear-tags." },
 
-    { id: "poll", name: "Poll", category: "Head & Neck", difficulty: "hard", points: 15, x: 22, y: 30,
+    { id: "poll", name: "Poll", category: "Head & Neck", difficulty: "hard", points: 15, x: 24, y: 25,
       function: "The top of the head between the ears, where the horns emerge.",
       clinical: "A key landmark for haltering and restraint during handling and examination." },
 

@@ -45,6 +45,7 @@ gaash/
 
 ## Future Enhancements
 The application has been designed so it can be extended with features such as:
+
 - **Adaptive quizzes**  based on learner performance,
 - **Spaced repetition** for long-term knowledge retention.
 - **Learning analytics** and **progress tracking** for instructors and researchers

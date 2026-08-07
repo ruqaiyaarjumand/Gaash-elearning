@@ -1,13 +1,9 @@
 # Gaash — Interactive Veterinary Learning
 
-**Gaash** ("light" in Kashmiri) is a gamified, interactive micro-lesson for
-veterinary and animal-husbandry students. The first lesson, *Know Your Dairy
-Cow*, teaches external anatomy through tap-to-discover interaction, a
-Bloom's-taxonomy quiz, and a learning-analytics summary.
+**Gaash** (meaning "light" in Kashmiri) is a gamified, interactive learning application designed for veterinary and animal husbandry students. The first module,  *Know Your Dairy
+Cow*,helps learners understand external cow anatomy through interactive exploration, quizzes, and learning analytics.
 
-Built as a demonstration for the DST-funded project *Tech-driven Augmentation
-of Veterinary Education for Creating an Engaging and Interactive Learning
-Experience.*
+Gaash is a self-initiated educational prototype that explores how interactive learning, gamification, and modern web technologies can enhance veterinary education. It was developed as part of my preparation for a Project Associate interview focused on technology-enhanced veterinary learning.
 
 ## What it does
 - **Interactive lesson** — tap parts of a cow to reveal name, function, and

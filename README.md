@@ -43,9 +43,14 @@ gaash/
     └── buffalo.js    Water Buffalo lesson (proves scalability)
 ```
 
-## Roadmap
-Designed to extend toward adaptive difficulty, spaced-repetition review,
-a learning-record store for research data, and SCORM packaging for Moodle.
+## Future Enhancements
+
+- The application has been designed so it can be extended with features such as:
+-     Adaptive quizzes based on learner performance
+-     Spaced repetition for long-term knowledge retention
+-     Learning analytics and progress tracking for instructors and researchers
+-     SCORM compatibility for integration with learning management systems such as Moodle
+-     Additional anatomy modules for other livestock species
 
 ---
 Designed and built by Ruqaiya Arjumand.

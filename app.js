@@ -139,7 +139,7 @@ function buildWelcome(l) {
         <span class="tease tease--1" aria-hidden="true"></span>
         <span class="tease tease--2" aria-hidden="true"></span>
         <span class="tease tease--3" aria-hidden="true"></span>
-        <span class="hero__hint">Tap parts to explore &rarr;</span>
+        <span class="hero__hint">Tap parts to explore</span>
       </div>
     </div>`;
 }

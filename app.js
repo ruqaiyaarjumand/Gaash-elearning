@@ -25,7 +25,7 @@ const state = {
                          // and future analytics.
 };
 
-/* ---- Persistence = the "user tracking" feature ---- */
+/* ---- Persistence: Saves and restores learner progress using Local Storage ---- */
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch (e) { /* private mode / full: fail quietly */ }

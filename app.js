@@ -21,7 +21,8 @@ const state = {
   streak: 0,
   quizIndex: 0,
   quizScore: 0,
-  answers: []            // { id, correct } per question -> powers the summary
+  answers: []            // Stores each quiz response. Used to calculate the learning summary, category mastery, and future analytics.
+answers: []
 };
 
 /* ---- Persistence = the "user tracking" feature ---- */

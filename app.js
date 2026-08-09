@@ -290,8 +290,11 @@ function resetLessonState() {
 
 /* Restart the CURRENT lesson from scratch */
 function restartLesson() {
-  if (!confirm("Restart this lesson? Your progress in this lesson will be reset. Your total points stay.")) return;
-  resetLessonState();
+  if (!confirm("Restart? Your points and progress will be cleared for a fresh start.")) return;
+  resetLessonState();        // foundParts, quiz session, screen
+  state.points = 0;          // full wipe
+  state.rewarded = [];       // so achievements can be earned again
+  state.earnedBadges = [];   // badge goes back to locked
   save();
   rebuildAll();
   showScreen("welcome");

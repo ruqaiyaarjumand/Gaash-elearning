@@ -24,6 +24,8 @@ const state = {
   screen: "welcome",
   foundParts: [],
   points: 0,
+  rewarded: [],          // keys of things already scored, so nothing double-counts
+  earnedBadges: [],      // badge ids the learner has completed
   quizIndex: 0,
   quizScore: 0,
   answers: []            // { id, correct, category, bloom } -> powers the summary
@@ -149,6 +151,15 @@ function cowSVG() {
    ===================================================================== */
 function buildWelcome(l) {
   const outcomes = l.outcomes.map(o => `<li>${o}</li>`).join("");
+  const earned = state.earnedBadges.includes(l.badge.id);
+  const lockIcon = `<svg width="14" height="14" viewBox="-8 -8 16 16" aria-hidden="true">`
+    + `<rect x="-6" y="-1" width="12" height="10" rx="2" fill="#C9992F"/>`
+    + `<path d="M-3 -1 v-3 a3 3 0 0 1 6 0 v3" fill="none" stroke="#C9992F" stroke-width="2"/></svg>`;
+  const medalIcon = `<svg width="14" height="14" viewBox="-8 -8 16 16" aria-hidden="true">`
+    + `<circle cx="0" cy="0" r="7" fill="#EBB84A"/>`
+    + `<path d="M-3 0 l2 2.5 l4 -5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const badgeChip = `<div class="badge-chip ${earned ? "badge-chip--earned" : "badge-chip--locked"}">`
+    + `${earned ? medalIcon : lockIcon} ${l.badge.name}</div>`;
   document.getElementById("screen-welcome").innerHTML = `
     <div class="welcome">
       <div class="welcome__intro">
@@ -174,13 +185,7 @@ function buildWelcome(l) {
           </svg>
         </button>
 
-        <div class="badge-chip badge-chip--locked">
-          <svg width="14" height="14" viewBox="-8 -8 16 16" aria-hidden="true">
-            <rect x="-6" y="-1" width="12" height="10" rx="2" fill="#C9992F"/>
-            <path d="M-3 -1 v-3 a3 3 0 0 1 6 0 v3" fill="none" stroke="#C9992F" stroke-width="2"/>
-          </svg>
-          ${l.badge.name} (Locked)
-        </div>
+        ${badgeChip}
       </div>
 
       <div class="welcome__hero">
@@ -270,8 +275,10 @@ function rebuildAll() {
 
 /* Clear the current lesson's session (used by restart + switch) */
 function resetLessonState() {
+  // Clears the current lesson's session only. Cumulative points and the
+  // rewarded set persist, so switching or restarting never wipes your
+  // total, and re-doing a lesson earns no extra points.
   state.foundParts = [];
-  state.points = 0;
   state.quizIndex = 0;
   state.quizScore = 0;
   state.answers = [];
@@ -281,7 +288,7 @@ function resetLessonState() {
 
 /* Restart the CURRENT lesson from scratch */
 function restartLesson() {
-  if (!confirm("Restart this lesson? Your points and progress will be cleared.")) return;
+  if (!confirm("Restart this lesson? Your progress in this lesson will be reset. Your total points stay.")) return;
   resetLessonState();
   save();
   rebuildAll();
@@ -358,15 +365,21 @@ function buildLesson(l) {
 function onHotspot(l, id) {
   const part = l.parts.find(p => p.id === id);
   const already = state.foundParts.includes(id);
+  let awarded = false;
   if (!already) {
     state.foundParts.push(id);
-    state.points += part.points;
-    addToFeed(part);
-    renderStats();
+    const rkey = state.lessonId + ":part:" + id;
+    if (!state.rewarded.includes(rkey)) {   // points only the first time, ever
+      state.points += part.points;
+      state.rewarded.push(rkey);
+      addToFeed(part);
+      renderStats();
+      awarded = true;
+    }
     save();
   }
   markFound(id, part.name);
-  renderPartCard(part, !already);
+  renderPartCard(part, awarded);
   updateLessonProgress(l);
 }
 
@@ -490,7 +503,14 @@ function answerQuestion(l, choice) {
   const correct = q.type === "mcq" ? (choice === q.answer) : (choice === q.target);
 
   state.answers[state.quizIndex] = { id: q.id, correct, category: q.category, bloom: q.bloom };
-  if (correct) { state.points += q.points; state.quizScore += 1; }
+  if (correct) {
+    state.quizScore += 1;                       // per-attempt score (for the summary)
+    const rkey = state.lessonId + ":quiz:" + q.id;
+    if (!state.rewarded.includes(rkey)) {       // points only the first time, ever
+      state.points += q.points;
+      state.rewarded.push(rkey);
+    }
+  }
   renderStats(); save();
 
   // reflect the answer on screen (icon + colour, never colour alone)
@@ -523,7 +543,10 @@ function nextQuestion(l) {
     save();
     renderQuestion(l);
   } else {
+    if (!state.earnedBadges.includes(lesson.badge.id)) state.earnedBadges.push(lesson.badge.id);
+    save();
     buildReward();
+    buildWelcome(lesson);   // welcome chip now shows the earned medal
     showScreen("reward");
   }
 }
@@ -602,7 +625,7 @@ function buildReward() {
       <div class="summary__tiles">
         <div class="tile"><span class="tile__num">${state.quizScore}/${total}</span><span class="tile__lbl">Quiz score</span></div>
         <div class="tile"><span class="tile__num">${state.foundParts.length}/${lesson.parts.length}</span><span class="tile__lbl">Parts explored</span></div>
-        <div class="tile"><span class="tile__num">${state.points}</span><span class="tile__lbl">Points earned</span></div>
+        <div class="tile"><span class="tile__num">${state.points}</span><span class="tile__lbl">Total points</span></div>
         <div class="tile"><span class="tile__num">${mins}</span><span class="tile__lbl">Minutes</span></div>
       </div>
 

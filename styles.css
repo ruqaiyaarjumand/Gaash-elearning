@@ -245,6 +245,12 @@ main { max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-6)
   border: 1px solid var(--yellow-100);
   color: var(--yellow-700);
 }
+.badge-chip--earned {
+  background: var(--yellow-100);
+  border: 1px solid var(--yellow-500);
+  color: var(--green-900);
+  font-weight: 700;
+}
 
 /* hero panel with the cow */
 .welcome__hero {

@@ -1,5 +1,5 @@
 /* =====================================================================
-   LESSON DATA — DAIRY COW
+   LESSON DATA: DAIRY COW
    Each animal is a separate data file registered into the LESSONS
    catalog. Add a file (goat.js, sheep.js) -> the platform gains a
    lesson, with no change to app logic. This is the "data-driven,
@@ -26,11 +26,11 @@ window.LESSONS.cow = {
       function: "The nose and upper lip. Grasps grass during grazing and senses texture and temperature.",
       clinical: "A cool, moist muzzle usually signals good hydration; a dry, crusted muzzle can point to fever or dehydration.",
       tip: "Check for moisture, symmetry, and any nasal discharge.",
-      fact: "A cow's muzzle print is unique — like a human fingerprint — and can be used for identification." },
+      fact: "A cow's muzzle print is unique, like a human fingerprint, and can be used for identification." },
 
     { id: "udder", name: "Udder", category: "Mammary", difficulty: "easy", points: 5, x: 56, y: 72,
       function: "The mammary organ. Four independent quarters, each with a teat, produce and store milk.",
-      clinical: "The primary site of mastitis. Heat, swelling, or clotted milk signals infection — a major welfare and economic issue in dairy herds.",
+      clinical: "The primary site of mastitis. Heat, swelling, or clotted milk signals infection, a major welfare and economic issue in dairy herds.",
       tip: "Palpate each quarter for heat or hardness; check milk for clots or discolouration.",
       fact: "A high-yielding cow's udder can hold over 20 litres of milk between milkings." },
 
@@ -42,7 +42,7 @@ window.LESSONS.cow = {
 
     { id: "dewlap", name: "Dewlap", category: "Head & Neck", difficulty: "medium", points: 10, x: 22, y: 68,
       function: "The loose fold of skin hanging under the neck and brisket.",
-      clinical: "Increases skin surface area to aid heat loss — relevant to heat-stress management in warmer climates.",
+      clinical: "Increases skin surface area to aid heat loss, relevant to heat-stress management in warmer climates.",
       tip: "More pronounced in zebu (Bos indicus) breeds; note as part of breed conformation.",
       fact: "Dewlap size is a classic visual marker separating humped indicine cattle from taurine breeds." },
 
@@ -57,7 +57,7 @@ window.LESSONS.cow = {
       clinical: "Many dairy herds disbud calves early to prevent injuries to handlers and other cows." },
 
     { id: "ear", name: "Ear", category: "Head & Neck", difficulty: "easy", points: 5, x: 31, y: 41,
-      function: "Highly mobile — cattle rotate their ears to locate sound and to signal mood.",
+      function: "Highly mobile. Cattle rotate their ears to locate sound and to signal mood.",
       clinical: "Drooping ears can be an early, easily-missed sign of illness; also the standard site for ID ear-tags." },
 
     { id: "poll", name: "Poll", category: "Head & Neck", difficulty: "hard", points: 15, x: 24, y: 25,
@@ -74,10 +74,10 @@ window.LESSONS.cow = {
 
     { id: "flank", name: "Flank", category: "Trunk", difficulty: "medium", points: 10, x: 67, y: 55,
       function: "The soft side of the body between the last rib and the hind leg.",
-      clinical: "The left paralumbar fossa reflects rumen fill and is the site for rumen examination — the link to digestion." },
+      clinical: "The left paralumbar fossa reflects rumen fill and is the site for rumen examination, the link to digestion." },
 
     { id: "hock", name: "Hock", category: "Limbs", difficulty: "hard", points: 15, x: 70, y: 80,
-      function: "The tarsal joint of the hind limb — equivalent to a human ankle.",
+      function: "The tarsal joint of the hind limb, equivalent to a human ankle.",
       clinical: "Swelling or hair loss here (hock lesions) points to poor lying comfort or housing problems." }
   ],
 

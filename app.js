@@ -1,16 +1,23 @@
 /* =====================================================================
-   GAASH — APP LOGIC
+   GAASH: APP LOGIC
    Data-driven: the lesson comes from lessons/<id>.js (registered into
    window.LESSONS). Every screen is built from that data, so swapping
    cow -> buffalo -> goat is just a different file.
 
-   One `state` object is the single source of truth. Every action
-   updates state; state updates the screen; state is saved to
-   localStorage so progress survives a refresh (the "tracking" layer).
+   One `state` object is the single source of truth. All interaction is
+   handled by ONE delegated click listener (below), so rebuilding a
+   screen never stacks duplicate handlers. Progress is saved to
+   localStorage.
    ===================================================================== */
 
 const STORAGE_KEY = "gaash-progress";
 let lesson = null;
+const sessionStart = Date.now();
+
+/* Temporary quiz-interaction variables (describe the current attempt,
+   so they live outside `state` and are never persisted). */
+let quizAnswered = false;
+let quizStreak = 0;
 
 /* ---- Single source of truth ---- */
 const state = {
@@ -18,14 +25,12 @@ const state = {
   screen: "welcome",
   foundParts: [],
   points: 0,
-  streak: 0,
   quizIndex: 0,
   quizScore: 0,
-  answers: []            // Stores each quiz response. Used to calculate the learning summary, category mastery, 
-                         // and future analytics.
+  answers: []            // { id, correct, category, bloom } -> powers the summary
 };
 
-/* ---- Persistence: Saves and restores learner progress using Local Storage ---- */
+/* ---- Persistence = the "user tracking" feature ---- */
 function save() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch (e) { /* private mode / full: fail quietly */ }
@@ -45,21 +50,9 @@ function showScreen(id) {
   save();
 }
 
-/* ---- Reflect points + streak in the top bar ---- */
+/* ---- Reflect points in the top bar ---- */
 function renderStats() {
   document.getElementById("points-value").textContent = state.points;
-  document.getElementById("streak-value").textContent = state.streak;
-}
-
-/* ---- Category mastery: tiny helper the summary screen uses ---- */
-function categoryMastery() {
-  const totals = {};
-  lesson.parts.forEach(p => {
-    totals[p.category] = totals[p.category] || { found: 0, total: 0 };
-    totals[p.category].total++;
-    if (state.foundParts.includes(p.id)) totals[p.category].found++;
-  });
-  return totals;
 }
 
 /* ---- The cow illustration (one source, reused across screens) ---- */
@@ -96,7 +89,7 @@ function cowSVG() {
 }
 
 /* =====================================================================
-   SCREEN 1 — WELCOME  (built as an educational module from lesson data)
+   SCREEN 1: WELCOME  (educational module, built from lesson data)
    ===================================================================== */
 function buildWelcome(l) {
   const outcomes = l.outcomes.map(o => `<li>${o}</li>`).join("");
@@ -130,7 +123,7 @@ function buildWelcome(l) {
             <rect x="-6" y="-1" width="12" height="10" rx="2" fill="#C9992F"/>
             <path d="M-3 -1 v-3 a3 3 0 0 1 6 0 v3" fill="none" stroke="#C9992F" stroke-width="2"/>
           </svg>
-          ${l.badge.name} — Locked
+          ${l.badge.name} (Locked)
         </div>
       </div>
 
@@ -139,7 +132,7 @@ function buildWelcome(l) {
         <span class="tease tease--1" aria-hidden="true"></span>
         <span class="tease tease--2" aria-hidden="true"></span>
         <span class="tease tease--3" aria-hidden="true"></span>
-        <span class="hero__hint">Tap parts to explore</span>
+        <span class="hero__hint">Tap parts to explore &rarr;</span>
       </div>
     </div>`;
 }
@@ -154,42 +147,117 @@ function init() {
       'lessons/' + state.lessonId + '.js is included before app.js.</p>';
     return;
   }
+  rebuildAll();
+  showScreen(state.screen);
+}
+document.addEventListener("DOMContentLoaded", init);
 
-  renderStats();
+/* =====================================================================
+   INTERACTION: ONE delegated listener for the whole app.
+   Because screens are rebuilt when the lesson changes, binding clicks
+   here (once) is what prevents stale/duplicate handlers.
+   ===================================================================== */
+document.addEventListener("click", (e) => {
+  // Top bar
+  if (e.target.closest("#restart-btn")) return restartLesson();
+
+  // Summary -> switch to the other lesson
+  if (e.target.closest("#next-lesson-btn"))
+    return switchLesson(state.lessonId === "cow" ? "buffalo" : "cow");
+
+  // Lesson -> Continue always starts a FRESH quiz attempt
+  const cont = e.target.closest("#continue-btn");
+  if (cont && !cont.disabled) return startQuiz();
+
+  // Progressive disclosure inside a part card
+  const disc = e.target.closest(".disclose");
+  if (disc) return toggleDisclosure(disc);
+
+  // Quiz answering (only before this question is locked in)
+  if (!quizAnswered) {
+    const opt = e.target.closest(".q-option");
+    if (opt) return answerQuestion(lesson, opt.dataset.choice);
+    const qhs = e.target.closest(".hotspot--quiz");
+    if (qhs) return answerQuestion(lesson, qhs.dataset.choice);
+  }
+
+  // Quiz -> next question / results
+  if (e.target.closest("#quiz-next")) return nextQuestion(lesson);
+
+  // Lesson discovery hotspot (quiz hotspots are excluded, handled above)
+  const hs = e.target.closest(".hotspot:not(.hotspot--quiz)");
+  if (hs) return onHotspot(lesson, hs.dataset.part);
+
+  // Generic navigation: Begin lesson, Review lesson, brand -> home
+  const nav = e.target.closest("[data-goto]");
+  if (nav) return showScreen(nav.dataset.goto);
+});
+
+/* Toggle a part card's clinical detail (progressive disclosure) */
+function toggleDisclosure(d) {
+  const detail = d.nextElementSibling;
+  const opening = detail.hasAttribute("hidden");
+  detail.toggleAttribute("hidden", !opening);
+  d.setAttribute("aria-expanded", String(opening));
+  d.textContent = opening ? "Hide clinical detail" : "Clinical detail";
+}
+
+/* Rebuild every screen from the current `lesson` */
+function rebuildAll() {
   buildWelcome(lesson);
   buildLesson(lesson);
   buildQuiz(lesson);
   buildReward();
-  showScreen(state.screen);
+  renderStats();
 }
 
-/* Navigation via data-goto attributes, e.g. <button data-goto="lesson"> */
-document.addEventListener("click", (e) => {
-  if (e.target.closest("#restart-btn")) return restartLesson();
-  const trigger = e.target.closest("[data-goto]");
-  if (trigger) showScreen(trigger.dataset.goto);
-});
+/* Clear the current lesson's session (used by restart + switch) */
+function resetLessonState() {
+  state.foundParts = [];
+  state.points = 0;
+  state.quizIndex = 0;
+  state.quizScore = 0;
+  state.answers = [];
+  state.screen = "welcome";
+  quizAnswered = false;
+  quizStreak = 0;
+}
 
-/* Reset the current lesson to a clean state (handy for repeat demos) */
+/* Restart the CURRENT lesson from scratch */
 function restartLesson() {
   if (!confirm("Restart this lesson? Your points and progress will be cleared.")) return;
-  state.foundParts = []; state.points = 0; state.streak = 0;
-  state.quizIndex = 0; state.quizScore = 0; state.answers = [];
-  state.screen = "welcome";
-  quizStreak = 0;
+  resetLessonState();
   save();
-  buildWelcome(lesson); buildLesson(lesson); buildQuiz(lesson); buildReward();
-  renderStats();
+  rebuildAll();
   showScreen("welcome");
 }
 
-document.addEventListener("DOMContentLoaded", init);
+/* Switch to ANOTHER lesson: sync lessonId + lesson, then reset + rebuild */
+function switchLesson(id) {
+  if (!window.LESSONS[id]) return;
+  state.lessonId = id;
+  lesson = window.LESSONS[id];
+  resetLessonState();
+  save();
+  rebuildAll();
+  showScreen("welcome");
+}
+
+/* Start a FRESH quiz attempt (called from Continue). Resets ONLY the
+   quiz-attempt state so a previous attempt's quizIndex can't leak. */
+function startQuiz() {
+  state.quizIndex = 0;
+  state.quizScore = 0;
+  state.answers = [];
+  quizAnswered = false;
+  quizStreak = 0;
+  save();
+  renderQuestion(lesson);
+  showScreen("quiz");
+}
 
 /* =====================================================================
-   SCREEN 2 — LESSON  (tap-to-discover + progressive-disclosure cards)
-   Hotspots are real <button>s positioned by % over the cow, so they're
-   keyboard-accessible. Each part's clinical detail is hidden until the
-   learner asks for it (progressive disclosure).
+   SCREEN 2: LESSON  (tap-to-discover + progressive-disclosure cards)
    ===================================================================== */
 function buildLesson(l) {
   const hotspots = l.parts.map(p => `
@@ -220,31 +288,14 @@ function buildLesson(l) {
         <div class="feed">
           <h2 class="feed__title">Recently discovered</h2>
           <ul class="feed__list" id="feed-list">
-            <li class="feed__empty">Nothing yet — start tapping!</li>
+            <li class="feed__empty">Nothing yet, start tapping!</li>
           </ul>
         </div>
-        <button class="btn continue" id="continue-btn" data-goto="quiz" disabled>
+        <button class="btn continue" id="continue-btn" disabled>
           Discover all parts to unlock the quiz
         </button>
       </aside>
     </div>`;
-
-  // hotspot clicks
-  document.getElementById("hotspots").addEventListener("click", (e) => {
-    const btn = e.target.closest(".hotspot");
-    if (btn) onHotspot(l, btn.dataset.part);
-  });
-
-  // progressive-disclosure toggle (delegated, survives re-renders)
-  document.getElementById("partcard").addEventListener("click", (e) => {
-    const d = e.target.closest(".disclose");
-    if (!d) return;
-    const detail = d.nextElementSibling;
-    const opening = detail.hasAttribute("hidden");
-    detail.toggleAttribute("hidden", !opening);
-    d.setAttribute("aria-expanded", String(opening));
-    d.textContent = opening ? "Hide clinical detail" : "Clinical detail";
-  });
 
   refreshLessonUI(l); // restore any previously-found parts
 }
@@ -255,7 +306,6 @@ function onHotspot(l, id) {
   if (!already) {
     state.foundParts.push(id);
     state.points += part.points;
-    state.streak += 1;
     addToFeed(part);
     renderStats();
     save();
@@ -317,27 +367,14 @@ function refreshLessonUI(l) {
 }
 
 /* =====================================================================
-   SCREEN 3 — QUIZ  (Bloom's-tagged, MCQ + tap-on-cow, instant feedback)
-   Scoring is weighted by difficulty. We record every answer (with its
-   category + Bloom level) into state.answers, which powers the
-   Learning Summary on Screen 4. No lives — wrong answers just teach.
-   Colour is never the only signal (icon + text too) — a WCAG habit.
+   SCREEN 3: QUIZ  (Bloom's-tagged, MCQ + tap-on-cow, instant feedback)
+   Scoring is weighted by difficulty. Every answer is recorded into
+   state.answers (with category + Bloom) to power the Learning Summary.
+   No lives. Wrong answers still proceed and teach through feedback.
+   Colour is never the only signal (icon + text too), a WCAG habit.
    ===================================================================== */
-let quizAnswered = false;
-let quizStreak = 0;
-
 function buildQuiz(l) {
   document.getElementById("screen-quiz").innerHTML = `<div id="quiz-root"></div>`;
-
-  const root = document.getElementById("screen-quiz");
-  root.addEventListener("click", (e) => {
-    const opt = e.target.closest(".q-option");
-    if (opt && !quizAnswered) return answerQuestion(l, opt.dataset.choice);
-    const hs = e.target.closest(".hotspot--quiz");
-    if (hs && !quizAnswered) return answerQuestion(l, hs.dataset.choice);
-    if (e.target.closest("#quiz-next")) return nextQuestion(l);
-  });
-
   renderQuestion(l);
 }
 
@@ -347,6 +384,7 @@ function renderQuestion(l) {
   const q = l.quiz[i];
   const last = i === l.quiz.length - 1;
 
+  // Dots always come from the CURRENT lesson (data-driven count)
   const dots = l.quiz.map((qq, idx) => {
     let cls = "dot";
     if (idx < i) cls += (state.answers[idx] && state.answers[idx].correct) ? " dot--right" : " dot--wrong";
@@ -424,30 +462,25 @@ function answerQuestion(l, choice) {
     <span>${correct ? "Correct!" : "Not quite."} ${q.explain}</span>`;
 
   document.getElementById("quiz-streak").textContent = quizStreak + " in a row";
-  document.getElementById("quiz-next").disabled = false;
+  document.getElementById("quiz-next").disabled = false;   // wrong answers still proceed
 }
 
 function nextQuestion(l) {
   if (state.quizIndex < l.quiz.length - 1) {
-    state.quizIndex += 1; save();
+    state.quizIndex += 1;
+    save();
     renderQuestion(l);
   } else {
-    if (typeof buildReward === "function") buildReward();
+    buildReward();
     showScreen("reward");
   }
 }
 
 /* =====================================================================
-   SCREEN 4 — LEARNING SUMMARY  (analytics, not "game over")
-   Reads the data we tracked (foundParts + answers) to show score,
-   per-category mastery (mastered vs needs revision), level/XP, and a
-   recommended next lesson. This is the screen that speaks the
-   interviewer's language: learning analytics.
+   SCREEN 4: LEARNING SUMMARY  (analytics, not "game over")
+   Reads the tracked data (foundParts + answers) to show score, points,
+   and per-category mastery (mastered vs needs revision). No XP/levels.
    ===================================================================== */
-const sessionStart = Date.now();
-const XP_PER_LEVEL = 300;
-const LEVEL_NAMES = ["Newcomer", "Curious Calf", "Keen Heifer", "Field Scholar", "Herd Expert"];
-
 function quizMasteryByCategory() {
   const m = {};
   state.answers.forEach(a => {
@@ -477,10 +510,10 @@ function buildReward() {
   const total = lesson.quiz.length;
   const ratio = total ? state.quizScore / total : 0;
   const reflection = ratio >= 0.8
-    ? "Excellent — a strong grasp of external anatomy. You're ready to progress."
+    ? "Excellent, a strong grasp of external anatomy. You're ready to progress."
     : ratio >= 0.5
       ? "Good work. Review the areas flagged below, then move on."
-      : "A solid start — revisit the areas below before progressing.";
+      : "A solid start. Revisit the areas below before progressing.";
 
   const mastery = quizMasteryByCategory();
   const mastered = [], review = [];
@@ -490,9 +523,6 @@ function buildReward() {
     (c.correct / c.total >= 0.7 ? mastered : review).push(item);
   });
 
-  const level = Math.floor(state.points / XP_PER_LEVEL) + 1;
-  const xpIn = state.points % XP_PER_LEVEL;
-  const levelName = LEVEL_NAMES[Math.min(level - 1, LEVEL_NAMES.length - 1)];
   const mins = Math.max(1, Math.round((Date.now() - sessionStart) / 60000));
 
   const nextId = state.lessonId === "cow" ? "buffalo" : "cow";
@@ -520,7 +550,7 @@ function buildReward() {
       <div class="summary__tiles">
         <div class="tile"><span class="tile__num">${state.quizScore}/${total}</span><span class="tile__lbl">Quiz score</span></div>
         <div class="tile"><span class="tile__num">${state.foundParts.length}/${lesson.parts.length}</span><span class="tile__lbl">Parts explored</span></div>
-        <div class="tile"><span class="tile__num">${state.points}</span><span class="tile__lbl">Total points</span></div>
+        <div class="tile"><span class="tile__num">${state.points}</span><span class="tile__lbl">Points earned</span></div>
         <div class="tile"><span class="tile__num">${mins}</span><span class="tile__lbl">Minutes</span></div>
       </div>
 
@@ -531,16 +561,8 @@ function buildReward() {
         </div>
         <div class="mastery mastery--review">
           <h2>Needs revision</h2>
-          <ul>${review.join("") || '<li class="mastery__empty">Nothing flagged — great work!</li>'}</ul>
+          <ul>${review.join("") || '<li class="mastery__empty">Nothing flagged, great work!</li>'}</ul>
         </div>
-      </div>
-
-      <div class="summary__level">
-        <div class="summary__level-head">
-          <span>Level ${level} · ${levelName}</span>
-          <span>${xpIn} / ${XP_PER_LEVEL} XP</span>
-        </div>
-        <div class="bar"><div class="bar__fill" style="width:${xpIn / XP_PER_LEVEL * 100}%"></div></div>
       </div>
 
       <div class="summary__foot">
@@ -548,20 +570,4 @@ function buildReward() {
         <button class="btn summary__review" data-goto="lesson">Review lesson</button>
       </div>
     </div>`;
-
-  const nb = document.getElementById("next-lesson-btn");
-  if (nb) nb.addEventListener("click", () => switchLesson(nextId));
-}
-
-/* Switch to another lesson: same code, different data file (scalability) */
-function switchLesson(id) {
-  state.lessonId = id;
-  state.foundParts = []; state.quizIndex = 0; state.quizScore = 0;
-  state.answers = []; state.screen = "welcome";
-  quizStreak = 0;
-  lesson = window.LESSONS[id];
-  save();
-  buildWelcome(lesson); buildLesson(lesson); buildQuiz(lesson); buildReward();
-  renderStats();
-  showScreen("welcome");
 }

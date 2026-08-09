@@ -1,5 +1,5 @@
 /* =====================================================================
-   LESSON DATA — WATER BUFFALO
+   LESSON DATA: WATER BUFFALO
    A second lesson that loads through the exact same code as the cow.
    Proof that the platform is data-driven and scalable.
    ===================================================================== */
@@ -20,7 +20,7 @@ window.LESSONS.buffalo = {
 
   parts: [
     { id: "horn", name: "Horn", category: "Head & Neck", difficulty: "easy", points: 5, x: 19, y: 32,
-      function: "Large, swept-back horns — flatter and more curved than cattle horns.",
+      function: "Large, swept-back horns, flatter and more curved than cattle horns.",
       clinical: "Horn shape is a key breed-identification feature in buffalo.",
       fact: "Murrah buffalo are prized for their tightly curled horns." },
 

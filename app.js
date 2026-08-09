@@ -17,7 +17,6 @@ const sessionStart = Date.now();
 /* Temporary quiz-interaction variables (describe the current attempt,
    so they live outside `state` and are never persisted). */
 let quizAnswered = false;
-let quizStreak = 0;
 
 /* ---- Single source of truth ---- */
 const state = {
@@ -55,6 +54,62 @@ function renderStats() {
   document.getElementById("points-value").textContent = state.points;
 }
 
+/* ---- Daily learning streak: consecutive days the learner opens Gaash.
+   Stored separately from lesson state so it survives lesson switches. ---- */
+function updateDailyStreak() {
+  const KEY = "gaash-streak";
+  const pad = n => String(n).padStart(2, "0");
+  const now = new Date();
+  const todayStr = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+  let data;
+  try { data = JSON.parse(localStorage.getItem(KEY)); } catch (e) { /* ignore */ }
+  if (!data || !data.last) {
+    data = { count: 1, last: todayStr };
+  } else if (data.last !== todayStr) {
+    const last = new Date(data.last + "T00:00:00");
+    const today = new Date(todayStr + "T00:00:00");
+    const diffDays = Math.round((today - last) / 86400000);
+    data.count = (diffDays === 1) ? data.count + 1 : 1;   // 1 day apart continues; a gap resets
+    data.last = todayStr;
+  }
+  try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+  return data.count;
+}
+
+/* ---- Animal illustrations (same style system, picked per lesson) ---- */
+function animalSVG(l) { return l.id === "buffalo" ? buffaloSVG() : cowSVG(); }
+
+function buffaloSVG() {
+  return `
+  <svg viewBox="0 0 320 240" class="cow" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="160" cy="214" rx="118" ry="14" fill="#CFE0C0"/>
+    <g stroke="#2A3A2E" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+      <rect x="110" y="150" width="22" height="58" rx="7" fill="#8A929B"/>
+      <rect x="148" y="156" width="22" height="52" rx="7" fill="#8A929B"/>
+      <rect x="196" y="156" width="22" height="52" rx="7" fill="#8A929B"/>
+      <rect x="230" y="150" width="22" height="58" rx="7" fill="#8A929B"/>
+      <rect x="108" y="198" width="26" height="12" rx="4" fill="#2E3338" stroke="none"/>
+      <rect x="146" y="198" width="26" height="12" rx="4" fill="#2E3338" stroke="none"/>
+      <rect x="194" y="198" width="26" height="12" rx="4" fill="#2E3338" stroke="none"/>
+      <rect x="228" y="198" width="26" height="12" rx="4" fill="#2E3338" stroke="none"/>
+      <path d="M266 112 q24 22 14 68" fill="none"/>
+      <path d="M272 172 q-6 14 2 24 q10 -8 5 -24 Z" fill="#2E3338" stroke="none"/>
+      <ellipse cx="180" cy="174" rx="30" ry="20" fill="#6E767E"/>
+      <ellipse cx="178" cy="120" rx="102" ry="64" fill="#8A929B"/>
+      <ellipse cx="70" cy="122" rx="38" ry="44" fill="#8A929B"/>
+      <ellipse cx="50" cy="150" rx="25" ry="19" fill="#6E767E"/>
+      <ellipse cx="42" cy="150" rx="2.8" ry="4" fill="#3A3F44" stroke="none"/>
+      <ellipse cx="56" cy="150" rx="2.8" ry="4" fill="#3A3F44" stroke="none"/>
+      <ellipse cx="40" cy="92" rx="12" ry="8" fill="#8A929B"/>
+      <ellipse cx="100" cy="96" rx="12" ry="8" fill="#8A929B"/>
+      <path d="M60 80 C 42 72 22 66 8 68 C 6 73 10 78 20 80 C 34 83 48 86 56 92 Z" fill="#3A3F44"/>
+      <path d="M80 80 C 98 72 118 66 132 68 C 134 73 130 78 120 80 C 106 83 92 86 84 92 Z" fill="#3A3F44"/>
+      <circle cx="58" cy="108" r="4.6" fill="#22262A" stroke="none"/>
+      <circle cx="82" cy="108" r="4.6" fill="#22262A" stroke="none"/>
+    </g>
+  </svg>`;
+}
+
 /* ---- The cow illustration (one source, reused across screens) ---- */
 function cowSVG() {
   return `
@@ -83,7 +138,8 @@ function cowSVG() {
       <ellipse cx="96" cy="90" rx="12" ry="8" fill="#fff"/>
       <path d="M62 74 q-5 -16 5 -24 q5 10 2 24 Z" fill="#F0E2BE"/>
       <path d="M84 76 q5 -16 -3 -25 q-6 10 -3 25 Z" fill="#F0E2BE"/>
-      <circle cx="60" cy="106" r="4.5" fill="#2A3A2E" stroke="none"/>
+      <circle cx="58" cy="104" r="4.6" fill="#2A3A2E" stroke="none"/>
+      <circle cx="82" cy="104" r="4.6" fill="#2A3A2E" stroke="none"/>
     </g>
   </svg>`;
 }
@@ -128,7 +184,7 @@ function buildWelcome(l) {
       </div>
 
       <div class="welcome__hero">
-        ${cowSVG()}
+        ${animalSVG(l)}
         <span class="tease tease--1" aria-hidden="true"></span>
         <span class="tease tease--2" aria-hidden="true"></span>
         <span class="tease tease--3" aria-hidden="true"></span>
@@ -147,6 +203,7 @@ function init() {
       'lessons/' + state.lessonId + '.js is included before app.js.</p>';
     return;
   }
+  document.getElementById("streak-value").textContent = updateDailyStreak();
   rebuildAll();
   showScreen(state.screen);
 }
@@ -220,7 +277,6 @@ function resetLessonState() {
   state.answers = [];
   state.screen = "welcome";
   quizAnswered = false;
-  quizStreak = 0;
 }
 
 /* Restart the CURRENT lesson from scratch */
@@ -250,7 +306,6 @@ function startQuiz() {
   state.quizScore = 0;
   state.answers = [];
   quizAnswered = false;
-  quizStreak = 0;
   save();
   renderQuestion(lesson);
   showScreen("quiz");
@@ -274,7 +329,7 @@ function buildLesson(l) {
         </div>
         <div class="stage">
           <div class="stage__cow">
-            ${cowSVG()}
+            ${animalSVG(l)}
             <div class="hotspots" id="hotspots">${hotspots}</div>
           </div>
           <p class="stage__hint">Tap the glowing dots to discover each part</p>
@@ -402,7 +457,7 @@ function renderQuestion(l) {
       `<button class="hotspot hotspot--quiz" data-choice="${p.id}"
                style="left:${p.x}%;top:${p.y}%" aria-label="${p.name}"></button>`).join("");
     body = `<p class="q-taphint">Tap the answer on the cow</p>
-      <div class="stage stage--quiz"><div class="stage__cow">${cowSVG()}
+      <div class="stage stage--quiz"><div class="stage__cow">${animalSVG(l)}
         <div class="hotspots">${spots}</div></div></div>`;
   }
 
@@ -418,7 +473,6 @@ function renderQuestion(l) {
         ${body}
         <div class="q-feedback" id="quiz-feedback" hidden></div>
         <div class="quiz__foot">
-          <span class="q-streak" id="quiz-streak">${quizStreak} in a row</span>
           <button class="btn btn-primary" id="quiz-next" disabled>
             ${last ? "See results" : "Next question"}
             <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden="true">
@@ -436,8 +490,7 @@ function answerQuestion(l, choice) {
   const correct = q.type === "mcq" ? (choice === q.answer) : (choice === q.target);
 
   state.answers[state.quizIndex] = { id: q.id, correct, category: q.category, bloom: q.bloom };
-  if (correct) { state.points += q.points; state.quizScore += 1; quizStreak += 1; }
-  else { quizStreak = 0; }
+  if (correct) { state.points += q.points; state.quizScore += 1; }
   renderStats(); save();
 
   // reflect the answer on screen (icon + colour, never colour alone)
@@ -461,7 +514,6 @@ function answerQuestion(l, choice) {
   fb.innerHTML = `<span class="q-feedback__icon" aria-hidden="true">${correct ? "&#10003;" : "!"}</span>
     <span>${correct ? "Correct!" : "Not quite."} ${q.explain}</span>`;
 
-  document.getElementById("quiz-streak").textContent = quizStreak + " in a row";
   document.getElementById("quiz-next").disabled = false;   // wrong answers still proceed
 }
 

@@ -118,12 +118,6 @@ button { font-family: inherit; cursor: pointer; }
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: var(--space-3); }
-.brand__mark {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: var(--green-700);
-  display: grid; place-items: center;
-}
 .brand__name { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-3); }
 
 .stats { display: flex; gap: var(--space-3); }
@@ -452,12 +446,7 @@ main { max-width: 1120px; margin: 0 auto; padding: var(--space-8) var(--space-6)
 .q-feedback.is-right .q-feedback__icon { background: var(--green-500); }
 .q-feedback.is-wrong .q-feedback__icon { background: var(--yellow-700); }
 
-.quiz__foot { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-6); }
-.q-streak {
-  font-size: var(--fs-5); font-weight: 700; color: var(--green-700);
-  background: var(--green-50); border: 1px solid var(--line);
-  border-radius: 999px; padding: var(--space-2) var(--space-4);
-}
+.quiz__foot { display: flex; align-items: center; justify-content: flex-end; margin-top: var(--space-6); }
 
 @media (max-width: 600px) {
   .q-options { grid-template-columns: 1fr; }

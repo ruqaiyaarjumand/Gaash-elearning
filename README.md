@@ -15,7 +15,7 @@ Bloom's-taxonomy quiz, and a learning-analytics summary.
 - **Bloom's-taxonomy quiz**: mixes multiple-choice and tap-on-the-animal
   questions across Remember → Understand → Apply → Analyze.
 - **Learning summary**: per-category mastery (areas mastered vs. needs
-  revision), score, level/XP, and a recommended next lesson.
+  revision), score, and a recommended next lesson.
 - **Progress tracking**: saved locally so learners can resume.
 
 ## Tech

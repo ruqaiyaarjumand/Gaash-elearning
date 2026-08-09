@@ -5,7 +5,6 @@ veterinary and animal-husbandry students. The first lesson, *Know Your Dairy
 Cow*, teaches external anatomy through tap-to-discover interaction, a
 Bloom's-taxonomy quiz, and a learning-analytics summary.
 
-*
 
 ## What it does
 - **Interactive lesson**: tap parts of a cow to reveal name, function, and

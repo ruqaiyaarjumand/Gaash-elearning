@@ -5,9 +5,7 @@ veterinary and animal-husbandry students. The first lesson, *Know Your Dairy
 Cow*, teaches external anatomy through tap-to-discover interaction, a
 Bloom's-taxonomy quiz, and a learning-analytics summary.
 
-Built as a demonstration for the DST-funded project *Tech-driven Augmentation
-of Veterinary Education for Creating an Engaging and Interactive Learning
-Experience.*
+*
 
 ## What it does
 - **Interactive lesson**: tap parts of a cow to reveal name, function, and

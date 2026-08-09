@@ -155,9 +155,11 @@ function buildWelcome(l) {
   const lockIcon = `<svg width="14" height="14" viewBox="-8 -8 16 16" aria-hidden="true">`
     + `<rect x="-6" y="-1" width="12" height="10" rx="2" fill="#C9992F"/>`
     + `<path d="M-3 -1 v-3 a3 3 0 0 1 6 0 v3" fill="none" stroke="#C9992F" stroke-width="2"/></svg>`;
-  const medalIcon = `<svg width="14" height="14" viewBox="-8 -8 16 16" aria-hidden="true">`
-    + `<circle cx="0" cy="0" r="7" fill="#EBB84A"/>`
-    + `<path d="M-3 0 l2 2.5 l4 -5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  const medalIcon = `<svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">`
+    + `<path d="M5 1 L3.6 6.5 L7 5.6 Z" fill="#1E4D38"/>`
+    + `<path d="M11 1 L12.4 6.5 L9 5.6 Z" fill="#1E4D38"/>`
+    + `<circle cx="8" cy="10.2" r="4.8" fill="#EBB84A" stroke="#C9992F" stroke-width="0.7"/>`
+    + `<path d="M8 7.9 L8.7 9.5 L10.4 9.6 L9.1 10.7 L9.5 12.4 L8 11.5 L6.5 12.4 L6.9 10.7 L5.6 9.6 L7.3 9.5 Z" fill="#fff"/></svg>`;
   const badgeChip = `<div class="badge-chip ${earned ? "badge-chip--earned" : "badge-chip--locked"}">`
     + `${earned ? medalIcon : lockIcon} ${l.badge.name}</div>`;
   document.getElementById("screen-welcome").innerHTML = `
